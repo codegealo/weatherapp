@@ -5,25 +5,18 @@ import com.sample.wetherapp.dto.WeatherResponseDto;
 import com.sample.wetherapp.service.WeatherService;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.swing.plaf.basic.BasicDesktopIconUI;
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.Temporal;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
-public class WeathgerServiceV1 implements WeatherService {
+public class WeatherServiceV1 implements WeatherService {
 
     @Autowired
     @Qualifier("primary")
@@ -36,6 +29,7 @@ public class WeathgerServiceV1 implements WeatherService {
     @Value("${cacheDuration}")
     private long cacheDuration;
 
+    //TODO make this new service
     private Map<String,WeatherCache> cacheMap;
 
     @PostConstruct
@@ -70,16 +64,23 @@ public class WeathgerServiceV1 implements WeatherService {
         try {
             weatherResponseDto = externalWeatherClientPrimary.getWeather(city);
             cacheMap.put(city, new WeatherCache(Instant.now(),weatherResponseDto));
+            return weatherResponseDto;
         } catch (Exception e) {
-            weatherResponseDto = externalWeatherClientBackup.getWeather(city);
-            cacheMap.put(city, new WeatherCache(Instant.now(),weatherResponseDto));
+            try {
+                weatherResponseDto = externalWeatherClientBackup.getWeather(city);
+                cacheMap.put(city, new WeatherCache(Instant.now(),weatherResponseDto));
+                return weatherResponseDto;
+            } catch (Exception ex) {
+                if(cacheMap.get(city) != null)
+                        return cacheMap.get(city).weatherResponseDto;
+                throw new RuntimeException();
+            }
         }
-        return weatherResponseDto;
     }
 
 
     @AllArgsConstructor
-    class WeatherCache{
+    public static class WeatherCache{
         Instant lastUpdate;
         WeatherResponseDto weatherResponseDto;
     }

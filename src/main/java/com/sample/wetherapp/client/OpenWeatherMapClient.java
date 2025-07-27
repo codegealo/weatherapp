@@ -8,9 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.util.Map;
-import java.util.Objects;
-
 @Service("backup")
 public class OpenWeatherMapClient implements ExternalWeatherClient{
 
@@ -40,7 +37,7 @@ public class OpenWeatherMapClient implements ExternalWeatherClient{
     @Override
     public WeatherResponseDto getWeather(String city) {
         try {
-            if(city.toLowerCase().equals("melbourne")){
+            if(city.equals("melbourne")){
                 return apiCall();
             }
             throw new RuntimeException(new Exception(city +":not handled"));
